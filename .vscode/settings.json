@@ -1,0 +1,7 @@
+{
+    "files.eol": "\n",
+    "php.format.rules.endWithNewLine": false,
+    "prettier.endOfLine": "lf",
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
