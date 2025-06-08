@@ -13,7 +13,12 @@ const AppDataSource = new DataSource({
   database: process.env.DATABASE_NAME,
   synchronize: false,
   logging: ['query', 'error'],
-  entities: [__dirname + '/src/**/*.entity{.ts,.js}'],
+  entities: [
+    // __dirname + '/src/user/entities/user.entity{.ts,.js}',
+    // __dirname + '/src/contact/entities/contact.entity{.ts,.js}',
+    // __dirname + '/src/portfolio/entities/project.entity{.ts,.js}',
+    // __dirname + '/src/portfolio/entities/project-image.entity{.ts,.js}',
+  ],
   migrations: [__dirname + '/database/migrations/*{.ts,.js}'],
   subscribers: [],
 });
