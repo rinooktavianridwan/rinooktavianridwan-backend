@@ -1,4 +1,4 @@
-import { Contact } from '../../../infrastructures/database/entities/contact.entity';
+import { IContact } from '../../../infrastructures/database/interfaces/contact-entity.interface';
 
 export class ContactResponseDto {
   id: number;
@@ -8,10 +8,8 @@ export class ContactResponseDto {
   color?: string;
   order: number;
   isVisible: boolean;
-  createdAt: Date;
-  updatedAt: Date;
 
-  static fromEntity(contact: Contact): ContactResponseDto {
+  static fromEntity(contact: IContact): ContactResponseDto {
     const dto = new ContactResponseDto();
     dto.id = contact.id;
     dto.platformName = contact.platformName;
@@ -20,8 +18,6 @@ export class ContactResponseDto {
     dto.color = contact.color;
     dto.order = contact.order;
     dto.isVisible = contact.isVisible;
-    dto.createdAt = contact.createdAt;
-    dto.updatedAt = contact.updatedAt;
     return dto;
   }
 }

@@ -20,7 +20,7 @@ import { ProjectResponseDto } from '../dtos/project-response.dto';
 @Controller('projects')
 @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
 export class PortfolioController {
-  constructor(private readonly projectService: PortfolioService) { }
+  constructor(private readonly projectService: PortfolioService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)

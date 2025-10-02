@@ -12,4 +12,4 @@ import { ProjectImage } from '../../infrastructures/database/entities/project-im
   providers: [PortfolioService],
   exports: [PortfolioService],
 })
-export class PortfolioModule { }
+export class PortfolioModule {}

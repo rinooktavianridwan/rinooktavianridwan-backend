@@ -1,62 +1,103 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Param,
-  Put,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Post,
+  Put,
   ParseIntPipe,
-  UsePipes,
-  ValidationPipe,
-  HttpCode,
   HttpStatus,
+  Req,
 } from '@nestjs/common';
+import { IResponse } from 'src/common/interfaces/response.interface';
 import { ContactService } from '../services/contact.service';
-import { CreateContactDto } from '../dtos/create-contact.dto';
-import { UpdateContactDto } from '../dtos/update-contact.dto';
 import { ContactResponseDto } from '../dtos/contact-response.dto';
+import { CreateContactRequest } from '../dtos/requests/create-contact.dto';
+import { UpdateContactRequest } from '../dtos/requests/update-contact.dto';
 
-@Controller('contacts')
-@UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+@Controller({
+  path: 'contacts',
+  version: '1',
+})
 export class ContactController {
-  constructor(private readonly contactService: ContactService) { }
+  constructor(private readonly contactService: ContactService) {}
 
   @Post()
-  @HttpCode(HttpStatus.CREATED)
   async create(
-    @Body() createContactDto: CreateContactDto,
-  ): Promise<ContactResponseDto> {
-    const contact = await this.contactService.create(createContactDto);
-    return ContactResponseDto.fromEntity(contact);
+    @Body() request: CreateContactRequest,
+    @Req() req: Request,
+  ): Promise<IResponse<null>> {
+    const version = req.url.split('/')[1].replace('v', '');
+    await this.contactService.create(request);
+
+    return {
+      status_code: HttpStatus.CREATED,
+      message: 'Contact created successfully',
+      data: null,
+      version: `${version}.0.0`,
+    };
   }
 
   @Get()
-  async findAll(): Promise<ContactResponseDto[]> {
+  async findAll(@Req() req: Request): Promise<IResponse<ContactResponseDto[]>> {
+    const version = req.url.split('/')[1].replace('v', '');
     const contacts = await this.contactService.findAll();
-    return contacts.map((contact) => ContactResponseDto.fromEntity(contact));
+
+    return {
+      status_code: HttpStatus.OK,
+      message: 'Contacts retrieved successfully',
+      data: contacts.map((contact) => ContactResponseDto.fromEntity(contact)),
+      version: `${version}.0.0`,
+    };
   }
 
   @Get(':id')
   async findOne(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<ContactResponseDto> {
+    @Req() req: Request,
+  ): Promise<IResponse<ContactResponseDto>> {
+    const version = req.url.split('/')[1].replace('v', '');
     const contact = await this.contactService.findOne(id);
-    return ContactResponseDto.fromEntity(contact);
+
+    return {
+      status_code: HttpStatus.OK,
+      message: 'Contact retrieved successfully',
+      data: ContactResponseDto.fromEntity(contact),
+      version: `${version}.0.0`,
+    };
   }
 
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateContactDto: UpdateContactDto,
-  ): Promise<ContactResponseDto> {
-    const contact = await this.contactService.update(id, updateContactDto);
-    return ContactResponseDto.fromEntity(contact);
+    @Body() request: UpdateContactRequest,
+    @Req() req: Request,
+  ): Promise<IResponse<null>> {
+    const version = req.url.split('/')[1].replace('v', '');
+    await this.contactService.update(id, request);
+
+    return {
+      status_code: HttpStatus.OK,
+      message: 'Contact updated successfully',
+      data: null,
+      version: `${version}.0.0`,
+    };
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request,
+  ): Promise<IResponse<null>> {
+    const version = req.url.split('/')[1].replace('v', '');
     await this.contactService.remove(id);
+
+    return {
+      status_code: HttpStatus.OK,
+      message: 'Contact deleted successfully',
+      data: null,
+      version: `${version}.0.0`,
+    };
   }
 }

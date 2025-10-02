@@ -1,18 +1,22 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   OneToMany,
-  CreateDateColumn,
-  UpdateDateColumn,
+  ManyToOne,
+  JoinTable,
+  ManyToMany,
 } from 'typeorm';
 import { ProjectImage } from './project-image.entity';
+import { IProjectImage } from '../interfaces/project-image-entity.interface';
+import { User } from './user.entity';
+import { IUser } from '../interfaces/user-entity.interface';
+import { Technology } from './technology.entity';
+import { ITechnology } from '../interfaces/technology-entity.interface';
+import { IProject } from '../interfaces/project-entity.interface';
+import { Base } from './base.entity';
 
-@Entity('projects') // Nama tabel di database
-export class Project {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+@Entity('projects')
+export class Project extends Base implements IProject {
   @Column({ length: 255 })
   title: string;
 
@@ -28,21 +32,24 @@ export class Project {
   @Column({ nullable: true, length: 255 })
   documentationUrl: string;
 
-  @Column({ type: 'json', nullable: true })
-  technologies: string[];
-
   @Column({ default: true })
   isVisible: boolean;
+
+  @ManyToOne(() => User, (user) => user.projects)
+  user: IUser;
 
   @OneToMany(() => ProjectImage, (projectImage) => projectImage.project, {
     cascade: true,
     eager: false,
   })
-  images: ProjectImage[];
+  images: IProjectImage[];
 
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @ManyToMany(() => Technology, (technology) => technology.projects, {
+    cascade: true,
+    eager: false,
+  })
+  @JoinTable({
+    name: 'projects_technologies',
+  })
+  technologies: ITechnology[];
 }

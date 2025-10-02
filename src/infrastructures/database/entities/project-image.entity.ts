@@ -1,11 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne } from 'typeorm';
 import { Project } from './project.entity';
+import { IProject } from '../interfaces/project-entity.interface';
+import { IProjectImage } from '../interfaces/project-image-entity.interface';
+import { Base } from './base.entity';
 
 @Entity('project_images')
-export class ProjectImage {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class ProjectImage extends Base implements IProjectImage {
   @Column({ length: 255 })
   imageUrl: string;
 
@@ -15,7 +15,7 @@ export class ProjectImage {
   @ManyToOne(() => Project, (project) => project.images, {
     onDelete: 'CASCADE',
   })
-  project: Project;
+  project: IProject;
 
   @Column()
   projectId: number;

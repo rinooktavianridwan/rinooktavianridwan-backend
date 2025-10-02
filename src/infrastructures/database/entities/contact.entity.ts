@@ -1,16 +1,9 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, Column } from 'typeorm';
+import { IContact } from '../interfaces/contact-entity.interface';
+import { Base } from './base.entity';
 
 @Entity('contacts')
-export class Contact {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Contact extends Base implements IContact {
   @Column({ unique: true, length: 50 })
   platformName: string;
 
@@ -28,10 +21,4 @@ export class Contact {
 
   @Column({ default: true })
   isVisible: boolean;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }

@@ -3,41 +3,42 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Contact } from '../../../infrastructures/database/entities/contact.entity';
-import { CreateContactDto } from '../dtos/create-contact.dto';
-import { UpdateContactDto } from '../dtos/update-contact.dto';
+import { IContact } from '../../../infrastructures/database/interfaces/contact-entity.interface';
+import { ContactRepository } from '../repositories/contact.repository';
+import {
+  CreateContactRequest,
+  CreateContactDto,
+} from '../dtos/requests/create-contact.dto';
+import {
+  UpdateContactRequest,
+  UpdateContactDto,
+} from '../dtos/requests/update-contact.dto';
 
 @Injectable()
 export class ContactService {
-  constructor(
-    @InjectRepository(Contact)
-    private contactsRepository: Repository<Contact>,
-  ) { }
+  constructor(private readonly contactRepository: ContactRepository) {}
 
-  async create(createContactDto: CreateContactDto): Promise<Contact> {
-    const existingContact = await this.contactsRepository.findOneBy({
-      platformName: createContactDto.platformName,
-    });
+  async create(createContactDto: CreateContactRequest): Promise<void> {
+    const data = createContactDto as unknown as CreateContactDto;
+
+    const existingContact = await this.contactRepository.findOneByPlatformName(
+      data.platformName,
+    );
     if (existingContact) {
       throw new BadRequestException(
-        `Contact platform '${createContactDto.platformName}' already exists.`,
+        `Contact platform '${data.platformName}' already exists.`,
       );
     }
 
-    const newContact = this.contactsRepository.create(createContactDto);
-    return this.contactsRepository.save(newContact);
+    await this.contactRepository.create(createContactDto);
   }
 
-  async findAll(): Promise<Contact[]> {
-    return this.contactsRepository.find({
-      order: { order: 'ASC', platformName: 'ASC' },
-    });
+  async findAll(): Promise<IContact[]> {
+    return await this.contactRepository.findAll();
   }
 
-  async findOne(id: number): Promise<Contact> {
-    const contact = await this.contactsRepository.findOneBy({ id });
+  async findOne(id: number): Promise<IContact> {
+    const contact = await this.contactRepository.findOneById(id);
     if (!contact) {
       throw new NotFoundException(`Contact with ID ${id} not found.`);
     }
@@ -46,34 +47,34 @@ export class ContactService {
 
   async update(
     id: number,
-    updateContactDto: UpdateContactDto,
-  ): Promise<Contact> {
-    const contactToUpdate = await this.contactsRepository.findOneBy({ id });
+    updateContactDto: UpdateContactRequest,
+  ): Promise<void> {
+    const contactToUpdate = await this.contactRepository.findOneById(id);
     if (!contactToUpdate) {
       throw new NotFoundException(`Contact with ID ${id} not found.`);
     }
 
+    const data = updateContactDto as unknown as UpdateContactDto;
+
     if (
-      updateContactDto.platformName &&
-      updateContactDto.platformName !== contactToUpdate.platformName
+      data.platformName &&
+      data.platformName !== contactToUpdate.platformName
     ) {
-      const existingContact = await this.contactsRepository.findOneBy({
-        platformName: updateContactDto.platformName,
-      });
+      const existingContact =
+        await this.contactRepository.findOneByPlatformName(data.platformName);
       if (existingContact && existingContact.id !== id) {
         throw new BadRequestException(
-          `Contact platform '${updateContactDto.platformName}' already exists.`,
+          `Contact platform '${data.platformName}' already exists.`,
         );
       }
     }
 
-    this.contactsRepository.merge(contactToUpdate, updateContactDto);
-    return this.contactsRepository.save(contactToUpdate);
+    await this.contactRepository.update(contactToUpdate, updateContactDto);
   }
 
   async remove(id: number): Promise<void> {
-    const deleteResult = await this.contactsRepository.delete(id);
-    if (deleteResult.affected === 0) {
+    const isDeleted = await this.contactRepository.deleteById(id);
+    if (!isDeleted) {
       throw new NotFoundException(`Contact with ID ${id} not found.`);
     }
   }
