@@ -13,6 +13,11 @@ import {
   UpdateContactRequest,
   UpdateContactDto,
 } from '../dtos/requests/update-contact.dto';
+import {
+  PaginatedResponse,
+  PaginationQuery,
+  PaginationUtil,
+} from 'src/common/utils/pagination.util';
 
 @Injectable()
 export class ContactService {
@@ -33,8 +38,18 @@ export class ContactService {
     await this.contactRepository.create(createContactDto);
   }
 
-  async findAll(): Promise<IContact[]> {
-    return await this.contactRepository.findAll();
+  async findAllPaginated(
+    query: PaginationQuery,
+  ): Promise<PaginatedResponse<IContact>> {
+    const { page, per_page, skip, take } =
+      PaginationUtil.validatePaginationQuery(query);
+
+    const { data, total } = await this.contactRepository.findAllPaginated(
+      skip,
+      take,
+    );
+
+    return PaginationUtil.createPaginatedResponse(data, page, per_page, total);
   }
 
   async findOne(id: number): Promise<IContact> {

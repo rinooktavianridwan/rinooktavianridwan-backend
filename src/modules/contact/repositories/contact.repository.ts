@@ -18,10 +18,17 @@ export class ContactRepository {
     await this.contactsRepository.save(newContact);
   }
 
-  async findAll(): Promise<IContact[]> {
-    return await this.contactsRepository.find({
+  async findAllPaginated(
+    skip: number,
+    take: number,
+  ): Promise<{ data: IContact[]; total: number }> {
+    const [data, total] = await this.contactsRepository.findAndCount({
       order: { order: 'ASC', platformName: 'ASC' },
+      skip,
+      take,
     });
+
+    return { data, total };
   }
 
   async findOneById(id: number): Promise<IContact | null> {

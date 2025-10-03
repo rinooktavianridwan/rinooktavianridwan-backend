@@ -5,6 +5,7 @@ import {
   ManyToOne,
   JoinTable,
   ManyToMany,
+  JoinColumn,
 } from 'typeorm';
 import { ProjectImage } from './project-image.entity';
 import { IProjectImage } from '../interfaces/project-image-entity.interface';
@@ -24,32 +25,38 @@ export class Project extends Base implements IProject {
   description: string;
 
   @Column({ nullable: true, length: 255 })
-  websiteUrl: string;
+  websiteUrl?: string;
 
   @Column({ nullable: true, length: 255 })
-  githubUrl: string;
+  githubUrl?: string;
 
   @Column({ nullable: true, length: 255 })
-  documentationUrl: string;
+  documentationUrl?: string;
 
   @Column({ default: true })
   isVisible: boolean;
 
-  @ManyToOne(() => User, (user) => user.projects)
-  user: IUser;
+  @Column({ nullable: true })
+  userId?: number;
+
+  @ManyToOne(() => User, (user) => user.projects, { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'userId' })
+  user?: IUser;
 
   @OneToMany(() => ProjectImage, (projectImage) => projectImage.project, {
     cascade: true,
     eager: false,
   })
-  images: IProjectImage[];
+  images?: IProjectImage[];
 
-  @ManyToMany(() => Technology, (technology) => technology.projects, {
+  @ManyToMany(() => Technology, {
     cascade: true,
     eager: false,
   })
   @JoinTable({
     name: 'projects_technologies',
+    joinColumn: { name: 'projectId' },
+    inverseJoinColumn: { name: 'technologyId' },
   })
-  technologies: ITechnology[];
+  technologies?: ITechnology[];
 }

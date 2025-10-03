@@ -3,114 +3,108 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '../../../infrastructures/database/entities/user.entity';
-import { CreateUserDto } from '../dtos/create-user.dto';
-import { UpdateUserDto } from '../dtos/update-user.dto';
+import { IUser } from '../../../infrastructures/database/interfaces/user-entity.interface';
+import { UserRepository } from '../repositories/user.repository';
+import {
+  CreateUserRequest,
+  CreateUserDto,
+} from '../dtos/requests/create-user.dto';
+import {
+  UpdateUserRequest,
+  UpdateUserDto,
+} from '../dtos/requests/update-user.dto';
+import {
+  PaginatedResponse,
+  PaginationQuery,
+  PaginationUtil,
+} from '../../../common/utils/pagination.util';
 
 @Injectable()
 export class UserService {
-  constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const existingUserByUsername = await this.usersRepository.findOneBy({
-      username: createUserDto.username,
-    });
+  async create(createUserDto: CreateUserRequest): Promise<void> {
+    const data = createUserDto as unknown as CreateUserDto;
+
+    const existingUserByUsername = await this.userRepository.findOneByUsername(
+      data.username,
+    );
     if (existingUserByUsername) {
       throw new BadRequestException('Username already exists');
     }
 
-    if (createUserDto.email) {
-      const existingUserByEmail = await this.usersRepository.findOneBy({
-        email: createUserDto.email,
-      });
+    if (data.email) {
+      const existingUserByEmail = await this.userRepository.findOneByEmail(
+        data.email,
+      );
       if (existingUserByEmail) {
         throw new BadRequestException('Email already exists');
       }
     }
 
-    const newUser = this.usersRepository.create(createUserDto);
-    await newUser.hashPassword(createUserDto.password);
-
-    return this.usersRepository.save(newUser);
+    await this.userRepository.create(createUserDto);
   }
 
-  async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+  async findAllPaginated(
+    query: PaginationQuery,
+  ): Promise<PaginatedResponse<IUser>> {
+    const { page, per_page, skip, take } =
+      PaginationUtil.validatePaginationQuery(query);
+
+    const { data, total } = await this.userRepository.findAllPaginated(
+      skip,
+      take,
+    );
+
+    return PaginationUtil.createPaginatedResponse(data, page, per_page, total);
   }
 
-  async findOneById(id: number): Promise<User> {
-    const user = await this.usersRepository.findOneBy({ id });
+  async findOne(id: number): Promise<IUser> {
+    const user = await this.userRepository.findOneById(id);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
     return user;
   }
 
-  async findOneByUsername(username: string): Promise<User> {
-    const user = await this.usersRepository.findOne({
-      where: { username },
-      select: [
-        'id',
-        'username',
-        'password_hash',
-        'email',
-        'name',
-        'bio',
-        'profilePictureUrl',
-        'createdAt',
-        'updatedAt',
-      ],
-    });
+  async findOneByUsername(username: string): Promise<IUser> {
+    const user = await this.userRepository.findOneByUsername(username);
     if (!user) {
       throw new NotFoundException(`User with username '${username}' not found`);
     }
     return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const userToUpdate = await this.usersRepository.findOneBy({ id });
+  async update(id: number, updateUserDto: UpdateUserRequest): Promise<void> {
+    const userToUpdate = await this.userRepository.findOneById(id);
     if (!userToUpdate) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    if (
-      updateUserDto.username &&
-      updateUserDto.username !== userToUpdate.username
-    ) {
-      const existingUser = await this.usersRepository.findOneBy({
-        username: updateUserDto.username,
-      });
+    const data = updateUserDto as unknown as UpdateUserDto;
+
+    if (data.username && data.username !== userToUpdate.username) {
+      const existingUser = await this.userRepository.findOneByUsername(
+        data.username,
+      );
       if (existingUser && existingUser.id !== id) {
         throw new BadRequestException('Username already exists');
       }
     }
-    if (updateUserDto.email && updateUserDto.email !== userToUpdate.email) {
-      const existingUser = await this.usersRepository.findOneBy({
-        email: updateUserDto.email,
-      });
+
+    if (data.email && data.email !== userToUpdate.email) {
+      const existingUser = await this.userRepository.findOneByEmail(data.email);
       if (existingUser && existingUser.id !== id) {
         throw new BadRequestException('Email already exists');
       }
     }
 
-    if (updateUserDto.password) {
-      await userToUpdate.hashPassword(updateUserDto.password);
-      delete updateUserDto.password;
-    }
-
-    this.usersRepository.merge(userToUpdate, updateUserDto);
-
-    return this.usersRepository.save(userToUpdate);
+    await this.userRepository.update(userToUpdate, updateUserDto);
   }
 
   async remove(id: number): Promise<void> {
-    const deleteResult = await this.usersRepository.delete(id);
-    if (deleteResult.affected === 0) {
+    const isDeleted = await this.userRepository.deleteById(id);
+    if (!isDeleted) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
   }

@@ -1,4 +1,4 @@
-import { IContact } from '../../../infrastructures/database/interfaces/contact-entity.interface';
+import { IContact } from '../../../../infrastructures/database/interfaces/contact-entity.interface';
 
 export class ContactResponseDto {
   id: number;

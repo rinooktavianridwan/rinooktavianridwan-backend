@@ -1,14 +1,21 @@
-import { Entity, Column, ManyToMany } from 'typeorm';
-import { Project } from './project.entity';
+import { Entity, Column } from 'typeorm';
 import { Base } from './base.entity';
-import { IProject } from '../interfaces/project-entity.interface';
 import { ITechnology } from '../interfaces/technology-entity.interface';
 
 @Entity('technologies')
 export class Technology extends Base implements ITechnology {
-  @Column({ length: 255 })
+  @Column({ length: 255, unique: true })
   name: string;
 
-  @ManyToMany(() => Project, (projects) => projects.technologies)
-  projects: IProject[];
+  @Column({ type: 'text', nullable: true })
+  description?: string;
+
+  @Column({ length: 255, nullable: true })
+  iconUrl?: string;
+
+  @Column({ length: 10, nullable: true })
+  color?: string;
+
+  @Column({ default: true })
+  isVisible: boolean;
 }

@@ -1,4 +1,4 @@
-import { User } from '../../../infrastructures/database/entities/user.entity';
+import { IUser } from '../../../../infrastructures/database/interfaces/user-entity.interface';
 
 export class UserResponseDto {
   id: number;
@@ -10,7 +10,7 @@ export class UserResponseDto {
   createdAt: Date;
   updatedAt: Date;
 
-  static fromEntity(user: User): UserResponseDto {
+  static fromEntity(user: IUser): UserResponseDto {
     const dto = new UserResponseDto();
     dto.id = user.id;
     dto.username = user.username;

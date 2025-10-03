@@ -11,36 +11,39 @@ import {
   HttpCode,
   Req,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { IResponse } from 'src/common/interfaces/response.interface';
-import { UserService } from '../services/user.service';
-import { UserResponseDto } from '../dtos/responses/user-response.dto';
-import { CreateUserRequest } from '../dtos/requests/create-user.dto';
-import { UpdateUserRequest } from '../dtos/requests/update-user.dto';
+import { TechnologyService } from '../services/technology.service';
+import { TechnologyResponseDto } from '../dtos/responses/technology-response.dto';
+import { CreateTechnologyRequest } from '../dtos/requests/create-technology.dto';
+import { UpdateTechnologyRequest } from '../dtos/requests/update-technology.dto';
 import {
   PaginationQuery,
   PaginatedResponse,
 } from '../../../common/utils/pagination.util';
+import { JwtAuthGuard } from '../../user/guards/create-jwt';
 
 @Controller({
-  path: 'users',
+  path: 'technologies',
   version: '1',
 })
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+export class TechnologyController {
+  constructor(private readonly technologyService: TechnologyService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard)
   async create(
-    @Body() request: CreateUserRequest,
+    @Body() request: CreateTechnologyRequest,
     @Req() req: Request,
   ): Promise<IResponse<null>> {
     const version = req.url.split('/')[1].replace('v', '');
-    await this.userService.create(request);
+    await this.technologyService.create(request);
 
     return {
       status_code: HttpStatus.CREATED,
-      message: 'User created successfully',
+      message: 'Technology created successfully',
       data: null,
       version: `${version}.0.0`,
     };
@@ -50,19 +53,20 @@ export class UserController {
   async findAll(
     @Query() query: PaginationQuery,
     @Req() req: Request,
-  ): Promise<IResponse<PaginatedResponse<UserResponseDto>>> {
+  ): Promise<IResponse<PaginatedResponse<TechnologyResponseDto>>> {
     const version = req.url.split('/')[1].replace('v', '');
-    const paginatedResult = await this.userService.findAllPaginated(query);
+    const paginatedResult =
+      await this.technologyService.findAllPaginated(query);
     const responseData = {
-      data: paginatedResult.data.map((user) =>
-        UserResponseDto.fromEntity(user),
+      data: paginatedResult.data.map((technology) =>
+        TechnologyResponseDto.fromEntity(technology),
       ),
       meta: paginatedResult.meta,
     };
 
     return {
       status_code: HttpStatus.OK,
-      message: 'Users retrieved successfully',
+      message: 'Technologies retrieved successfully',
       data: responseData,
       version: `${version}.0.0`,
     };
@@ -72,46 +76,31 @@ export class UserController {
   async findOne(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
-  ): Promise<IResponse<UserResponseDto>> {
+  ): Promise<IResponse<TechnologyResponseDto>> {
     const version = req.url.split('/')[1].replace('v', '');
-    const user = await this.userService.findOne(id);
+    const technology = await this.technologyService.findOne(id);
 
     return {
       status_code: HttpStatus.OK,
-      message: 'User retrieved successfully',
-      data: UserResponseDto.fromEntity(user),
-      version: `${version}.0.0`,
-    };
-  }
-
-  @Get('username/:username')
-  async findOneByUsername(
-    @Param('username') username: string,
-    @Req() req: Request,
-  ): Promise<IResponse<UserResponseDto>> {
-    const version = req.url.split('/')[1].replace('v', '');
-    const user = await this.userService.findOneByUsername(username);
-
-    return {
-      status_code: HttpStatus.OK,
-      message: 'User retrieved successfully',
-      data: UserResponseDto.fromEntity(user),
+      message: 'Technology retrieved successfully',
+      data: TechnologyResponseDto.fromEntity(technology),
       version: `${version}.0.0`,
     };
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() request: UpdateUserRequest,
+    @Body() request: UpdateTechnologyRequest,
     @Req() req: Request,
   ): Promise<IResponse<null>> {
     const version = req.url.split('/')[1].replace('v', '');
-    await this.userService.update(id, request);
+    await this.technologyService.update(id, request);
 
     return {
       status_code: HttpStatus.OK,
-      message: 'User updated successfully',
+      message: 'Technology updated successfully',
       data: null,
       version: `${version}.0.0`,
     };
@@ -119,16 +108,17 @@ export class UserController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
   async remove(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
   ): Promise<IResponse<null>> {
     const version = req.url.split('/')[1].replace('v', '');
-    await this.userService.remove(id);
+    await this.technologyService.remove(id);
 
     return {
       status_code: HttpStatus.NO_CONTENT,
-      message: 'User deleted successfully',
+      message: 'Technology deleted successfully',
       data: null,
       version: `${version}.0.0`,
     };
