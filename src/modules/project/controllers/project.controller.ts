@@ -12,6 +12,8 @@ import {
   Req,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { IResponse } from 'src/common/interfaces/response.interface';
 import { ProjectService } from '../services/project.service';
@@ -24,6 +26,8 @@ import {
 } from '../../../common/utils/pagination.util';
 import { JwtAuthGuard } from '../../user/guards/create-jwt';
 import { IUser } from '../../../infrastructures/database/interfaces/user-entity.interface';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import * as multer from 'multer';
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -40,14 +44,26 @@ export class ProjectController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FilesInterceptor('images', 5, { storage: multer.memoryStorage() }),
+  )
   async create(
     @Body() request: CreateProjectRequest,
+    @UploadedFiles() files: Express.Multer.File[],
     @Req() req: AuthenticatedRequest,
   ): Promise<IResponse<ProjectResponseDto>> {
     const version = req.url.split('/')[1].replace('v', '');
-    // Auto-assign userId from JWT token
     request.userId = req.user.id;
-    const project = await this.projectService.create(request);
+
+    const localFiles =
+      files?.map((f) => ({
+        originalname: f.originalname,
+        buffer: f.buffer,
+        mimetype: f.mimetype,
+        size: f.size,
+      })) || [];
+
+    const project = await this.projectService.create(request, localFiles);
 
     return {
       status_code: HttpStatus.CREATED,
@@ -97,13 +113,26 @@ export class ProjectController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FilesInterceptor('images', 5, { storage: multer.memoryStorage() }),
+  )
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() request: UpdateProjectRequest,
     @Req() req: AuthenticatedRequest,
+    @UploadedFiles() files: Express.Multer.File[],
   ): Promise<IResponse<ProjectResponseDto>> {
     const version = req.url.split('/')[1].replace('v', '');
-    const project = await this.projectService.update(id, request);
+
+    const localFiles =
+      files?.map((f) => ({
+        originalname: f.originalname,
+        buffer: f.buffer,
+        mimetype: f.mimetype,
+        size: f.size,
+      })) || [];
+
+    const project = await this.projectService.update(id, request, localFiles);
 
     return {
       status_code: HttpStatus.OK,

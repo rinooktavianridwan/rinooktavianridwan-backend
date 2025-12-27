@@ -18,12 +18,21 @@ import {
   PaginationQuery,
   PaginationUtil,
 } from '../../../common/utils/pagination.util';
+import {
+  LocalMulterFile,
+  isMulterFile,
+  saveUploadedFile,
+  deleteUploadedFile,
+} from 'src/common/utils/upload.util';
 
 @Injectable()
 export class TechnologyService {
   constructor(private readonly technologyRepository: TechnologyRepository) {}
 
-  async create(createTechnologyDto: CreateTechnologyRequest): Promise<void> {
+  async create(
+    createTechnologyDto: CreateTechnologyRequest,
+    file?: LocalMulterFile,
+  ): Promise<void> {
     const data = createTechnologyDto as unknown as CreateTechnologyDto;
 
     const existingTechnology = await this.technologyRepository.findOneByName(
@@ -35,7 +44,20 @@ export class TechnologyService {
       );
     }
 
-    await this.technologyRepository.create(createTechnologyDto);
+    let uploadedUrl: string | undefined = undefined;
+    try {
+      if (file && isMulterFile(file)) {
+        uploadedUrl = await saveUploadedFile('tech', file);
+        (createTechnologyDto as CreateTechnologyDto).iconUrl = uploadedUrl;
+      }
+
+      await this.technologyRepository.create(createTechnologyDto);
+    } catch (err) {
+      if (uploadedUrl) {
+        await deleteUploadedFile(uploadedUrl);
+      }
+      throw err;
+    }
   }
 
   async findAllPaginated(
@@ -63,29 +85,37 @@ export class TechnologyService {
   async update(
     id: number,
     updateTechnologyDto: UpdateTechnologyRequest,
+    file?: LocalMulterFile,
   ): Promise<void> {
     const technologyToUpdate = await this.technologyRepository.findOneById(id);
     if (!technologyToUpdate) {
       throw new NotFoundException(`Technology with ID ${id} not found.`);
     }
 
-    const data = updateTechnologyDto as unknown as UpdateTechnologyDto;
-
-    if (data.name && data.name !== technologyToUpdate.name) {
-      const existingTechnology = await this.technologyRepository.findOneByName(
-        data.name,
-      );
-      if (existingTechnology && existingTechnology.id !== id) {
-        throw new BadRequestException(
-          `Technology '${data.name}' already exists.`,
-        );
-      }
+    // handle icon upload: upload first, keep old URL to delete after success
+    let newIconUrl: string | undefined = undefined;
+    if (file && isMulterFile(file)) {
+      newIconUrl = await saveUploadedFile('tech', file);
+      (updateTechnologyDto as UpdateTechnologyDto).iconUrl = newIconUrl;
     }
 
-    await this.technologyRepository.update(
-      technologyToUpdate,
-      updateTechnologyDto,
-    );
+    try {
+      await this.technologyRepository.update(
+        technologyToUpdate,
+        updateTechnologyDto,
+      );
+
+      // if update success and there was an old icon, delete it
+      if (newIconUrl && technologyToUpdate.iconUrl) {
+        await deleteUploadedFile(technologyToUpdate.iconUrl);
+      }
+    } catch (err) {
+      // cleanup newly uploaded icon if DB failed
+      if (newIconUrl) {
+        await deleteUploadedFile(newIconUrl);
+      }
+      throw err;
+    }
   }
 
   async remove(id: number): Promise<void> {

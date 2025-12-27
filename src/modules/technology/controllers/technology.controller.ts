@@ -12,6 +12,8 @@ import {
   Req,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { IResponse } from 'src/common/interfaces/response.interface';
 import { TechnologyService } from '../services/technology.service';
@@ -23,6 +25,9 @@ import {
   PaginatedResponse,
 } from '../../../common/utils/pagination.util';
 import { JwtAuthGuard } from '../../user/guards/create-jwt';
+import { FileInterceptor } from '@nestjs/platform-express';
+import * as multer from 'multer';
+import { LocalMulterFile } from 'src/common/utils/upload.util';
 
 @Controller({
   path: 'technologies',
@@ -34,12 +39,27 @@ export class TechnologyController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('icon', {
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 2 * 1024 * 1024 },
+    }),
+  )
   async create(
     @Body() request: CreateTechnologyRequest,
     @Req() req: Request,
+    @UploadedFile() file?: Express.Multer.File,
   ): Promise<IResponse<null>> {
     const version = req.url.split('/')[1].replace('v', '');
-    await this.technologyService.create(request);
+    const localFile = file
+      ? ({
+          originalname: file.originalname,
+          buffer: file.buffer,
+          mimetype: file.mimetype,
+          size: file.size,
+        } as LocalMulterFile)
+      : undefined;
+    await this.technologyService.create(request, localFile);
 
     return {
       status_code: HttpStatus.CREATED,
@@ -90,13 +110,28 @@ export class TechnologyController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('icon', {
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 2 * 1024 * 1024 },
+    }),
+  )
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() request: UpdateTechnologyRequest,
     @Req() req: Request,
+    @UploadedFile() file?: Express.Multer.File,
   ): Promise<IResponse<null>> {
     const version = req.url.split('/')[1].replace('v', '');
-    await this.technologyService.update(id, request);
+    const localFile = file
+      ? ({
+          originalname: file.originalname,
+          buffer: file.buffer,
+          mimetype: file.mimetype,
+          size: file.size,
+        } as LocalMulterFile)
+      : undefined;
+    await this.technologyService.update(id, request, localFile);
 
     return {
       status_code: HttpStatus.OK,

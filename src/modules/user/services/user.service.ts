@@ -6,10 +6,6 @@ import {
 import { IUser } from '../../../infrastructures/database/interfaces/user-entity.interface';
 import { UserRepository } from '../repositories/user.repository';
 import {
-  CreateUserRequest,
-  CreateUserDto,
-} from '../dtos/requests/create-user.dto';
-import {
   UpdateUserRequest,
   UpdateUserDto,
 } from '../dtos/requests/update-user.dto';
@@ -18,32 +14,16 @@ import {
   PaginationQuery,
   PaginationUtil,
 } from '../../../common/utils/pagination.util';
+import {
+  saveUploadedFile,
+  deleteUploadedFile,
+  isMulterFile,
+  LocalMulterFile,
+} from 'src/common/utils/upload.util';
 
 @Injectable()
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
-
-  async create(createUserDto: CreateUserRequest): Promise<void> {
-    const data = createUserDto as unknown as CreateUserDto;
-
-    const existingUserByUsername = await this.userRepository.findOneByUsername(
-      data.username,
-    );
-    if (existingUserByUsername) {
-      throw new BadRequestException('Username already exists');
-    }
-
-    if (data.email) {
-      const existingUserByEmail = await this.userRepository.findOneByEmail(
-        data.email,
-      );
-      if (existingUserByEmail) {
-        throw new BadRequestException('Email already exists');
-      }
-    }
-
-    await this.userRepository.create(createUserDto);
-  }
 
   async findAllPaginated(
     query: PaginationQuery,
@@ -63,14 +43,6 @@ export class UserService {
     const user = await this.userRepository.findOneById(id);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
-    }
-    return user;
-  }
-
-  async findOneByUsername(username: string): Promise<IUser> {
-    const user = await this.userRepository.findOneByUsername(username);
-    if (!user) {
-      throw new NotFoundException(`User with username '${username}' not found`);
     }
     return user;
   }
@@ -100,6 +72,28 @@ export class UserService {
     }
 
     await this.userRepository.update(userToUpdate, updateUserDto);
+  }
+
+  async updateProfilePicture(
+    user: IUser,
+    file?: LocalMulterFile,
+  ): Promise<void> {
+    if (!file || !isMulterFile(file)) {
+      throw new BadRequestException('Invalid or missing file');
+    }
+    const mf = file;
+
+    // delete existing file if present
+    if (user.profilePictureUrl) {
+      await deleteUploadedFile(user.profilePictureUrl);
+    }
+
+    const publicPath = await saveUploadedFile('profile', mf);
+
+    const updatePayload = {
+      profilePictureUrl: publicPath,
+    } as unknown as UpdateUserRequest;
+    await this.userRepository.update(user, updatePayload);
   }
 
   async remove(id: number): Promise<void> {

@@ -1,6 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserService } from './user.service';
+import { UserRepository } from '../repositories/user.repository';
 import { IUser } from '../../../infrastructures/database/interfaces/user-entity.interface';
 import { LoginRequest, LoginDto } from '../dtos/requests/login-auth.dto';
 import {
@@ -12,7 +17,7 @@ import { User } from '../../../infrastructures/database/entities/user.entity';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly userService: UserService,
+    private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -21,7 +26,7 @@ export class AuthService {
     password: string,
   ): Promise<IUser | null> {
     try {
-      const user = await this.userService.findOneByUsername(username);
+      const user = await this.userRepository.findOneByUsername(username);
       const userEntity = user as User; // Proper type casting
 
       if (userEntity && (await userEntity.validatePassword(password))) {
@@ -60,11 +65,12 @@ export class AuthService {
   ): Promise<{ user: IUser; access_token: string }> {
     const data = registerDto as unknown as RegisterDto;
 
-    // Create user through UserService (it handles validation)
-    await this.userService.create(registerDto);
+    await this.userRepository.create(registerDto);
 
-    // Get the created user and generate token
-    const user = await this.userService.findOneByUsername(data.username);
+    const user = await this.userRepository.findOneByUsername(data.username);
+    if (!user) {
+      throw new InternalServerErrorException('Failed to create user');
+    }
 
     const payload = {
       username: user.username,
@@ -79,6 +85,10 @@ export class AuthService {
   }
 
   async getProfile(userId: number): Promise<IUser> {
-    return await this.userService.findOne(userId);
+    const user = await this.userRepository.findOneById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID '${userId}' not found`);
+    }
+    return user;
   }
 }

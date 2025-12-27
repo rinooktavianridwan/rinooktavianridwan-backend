@@ -4,23 +4,26 @@ import {
   Delete,
   Get,
   Param,
-  Post,
   Put,
   ParseIntPipe,
   HttpStatus,
   HttpCode,
   Req,
   Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { IResponse } from 'src/common/interfaces/response.interface';
 import { UserService } from '../services/user.service';
 import { UserResponseDto } from '../dtos/responses/user-response.dto';
-import { CreateUserRequest } from '../dtos/requests/create-user.dto';
 import { UpdateUserRequest } from '../dtos/requests/update-user.dto';
 import {
   PaginationQuery,
   PaginatedResponse,
 } from '../../../common/utils/pagination.util';
+import { FileInterceptor } from '@nestjs/platform-express';
+import * as multer from 'multer';
+import { LocalMulterFile } from 'src/common/utils/upload.util';
 
 @Controller({
   path: 'users',
@@ -28,23 +31,6 @@ import {
 })
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Body() request: CreateUserRequest,
-    @Req() req: Request,
-  ): Promise<IResponse<null>> {
-    const version = req.url.split('/')[1].replace('v', '');
-    await this.userService.create(request);
-
-    return {
-      status_code: HttpStatus.CREATED,
-      message: 'User created successfully',
-      data: null,
-      version: `${version}.0.0`,
-    };
-  }
 
   @Get()
   async findAll(
@@ -75,22 +61,6 @@ export class UserController {
   ): Promise<IResponse<UserResponseDto>> {
     const version = req.url.split('/')[1].replace('v', '');
     const user = await this.userService.findOne(id);
-
-    return {
-      status_code: HttpStatus.OK,
-      message: 'User retrieved successfully',
-      data: UserResponseDto.fromEntity(user),
-      version: `${version}.0.0`,
-    };
-  }
-
-  @Get('username/:username')
-  async findOneByUsername(
-    @Param('username') username: string,
-    @Req() req: Request,
-  ): Promise<IResponse<UserResponseDto>> {
-    const version = req.url.split('/')[1].replace('v', '');
-    const user = await this.userService.findOneByUsername(username);
 
     return {
       status_code: HttpStatus.OK,
@@ -132,5 +102,28 @@ export class UserController {
       data: null,
       version: `${version}.0.0`,
     };
+  }
+
+  @Put(':id/profile-picture')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 }, // contoh: batasi 5MB
+    }),
+  )
+  async updateProfilePicture(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File, // multer memory file
+  ): Promise<void> {
+    const user = await this.userService.findOne(id);
+    // cast Express.Multer.File ke LocalMulterFile sesuai utils (buffer & originalname)
+    const localFile = {
+      originalname: file.originalname,
+      buffer: file.buffer,
+      mimetype: file.mimetype,
+      size: file.size,
+    } as LocalMulterFile;
+
+    await this.userService.updateProfilePicture(user, localFile);
   }
 }
