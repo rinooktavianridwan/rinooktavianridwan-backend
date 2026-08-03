@@ -21,7 +21,7 @@ import {
 
 @Injectable()
 export class ContactService {
-  constructor(private readonly contactRepository: ContactRepository) {}
+  constructor(private readonly contactRepository: ContactRepository) { }
 
   async create(createContactDto: CreateContactRequest): Promise<void> {
     const data = createContactDto as unknown as CreateContactDto;
@@ -85,6 +85,10 @@ export class ContactService {
     }
 
     await this.contactRepository.update(contactToUpdate, updateContactDto);
+  }
+
+  async findAllVisible(): Promise<IContact[]> {
+    return await this.contactRepository.findAllVisible();
   }
 
   async remove(id: number): Promise<void> {

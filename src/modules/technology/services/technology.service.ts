@@ -27,7 +27,7 @@ import {
 
 @Injectable()
 export class TechnologyService {
-  constructor(private readonly technologyRepository: TechnologyRepository) {}
+  constructor(private readonly technologyRepository: TechnologyRepository) { }
 
   async create(
     createTechnologyDto: CreateTechnologyRequest,
@@ -116,6 +116,10 @@ export class TechnologyService {
       }
       throw err;
     }
+  }
+
+  async findAllVisible(): Promise<ITechnology[]> {
+    return await this.technologyRepository.findAllVisible();
   }
 
   async remove(id: number): Promise<void> {

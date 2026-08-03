@@ -7,10 +7,14 @@ import { UserService } from './services/user.service';
 import { AuthService } from './services/auth.service';
 import { UserController } from './controllers/user.controller';
 import { AuthController } from './controllers/auth.controller';
+import { ProfileController } from './controllers/profile.controller';
 import { User } from '../../infrastructures/database/entities/user.entity';
 import { UserRepository } from './repositories/user.repository';
 import { JwtStrategy } from './guards/jwt.strategy';
 import { LocalStrategy } from './guards/local.strategy';
+import { ContactModule } from '../contact/contact.module';
+import { ProjectModule } from '../project/project.module';
+import { TechnologyModule } from '../technology/technology.module';
 
 @Module({
   imports: [
@@ -27,8 +31,11 @@ import { LocalStrategy } from './guards/local.strategy';
       }),
       inject: [ConfigService],
     }),
+    ContactModule,
+    ProjectModule,
+    TechnologyModule,
   ],
-  controllers: [UserController, AuthController],
+  controllers: [UserController, AuthController, ProfileController],
   providers: [
     UserService,
     AuthService,
@@ -38,4 +45,4 @@ import { LocalStrategy } from './guards/local.strategy';
   ],
   exports: [UserService, AuthService],
 })
-export class UserModule {}
+export class UserModule { }

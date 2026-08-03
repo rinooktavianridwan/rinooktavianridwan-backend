@@ -7,6 +7,7 @@ import { UserModule } from './modules/user/user.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { ProjectModule } from './modules/project/project.module';
 import { TechnologyModule } from './modules/technology/technology.module';
+import { HealthController } from './common/controllers/health.controller';
 
 @Module({
   imports: [
@@ -36,7 +37,7 @@ import { TechnologyModule } from './modules/technology/technology.module';
     TechnologyModule,
     ProjectModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

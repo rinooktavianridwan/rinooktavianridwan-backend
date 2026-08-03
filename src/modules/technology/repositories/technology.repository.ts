@@ -11,7 +11,7 @@ export class TechnologyRepository {
   constructor(
     @InjectRepository(Technology)
     private readonly technologyRepository: Repository<ITechnology>,
-  ) {}
+  ) { }
 
   async create(createTechnologyDto: CreateTechnologyRequest): Promise<void> {
     const newTechnology = this.technologyRepository.create(createTechnologyDto);
@@ -29,6 +29,13 @@ export class TechnologyRepository {
     });
 
     return { data, total };
+  }
+
+  async findAllVisible(): Promise<ITechnology[]> {
+    return await this.technologyRepository.find({
+      where: { isVisible: true },
+      order: { name: 'ASC' },
+    });
   }
 
   async findOneById(id: number): Promise<ITechnology | null> {

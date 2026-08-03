@@ -11,7 +11,7 @@ export class ContactRepository {
   constructor(
     @InjectRepository(Contact)
     private readonly contactsRepository: Repository<IContact>,
-  ) {}
+  ) { }
 
   async create(createContactDto: CreateContactRequest): Promise<void> {
     const newContact = this.contactsRepository.create(createContactDto);
@@ -29,6 +29,13 @@ export class ContactRepository {
     });
 
     return { data, total };
+  }
+
+  async findAllVisible(): Promise<IContact[]> {
+    return await this.contactsRepository.find({
+      where: { isVisible: true },
+      order: { order: 'ASC', platformName: 'ASC' },
+    });
   }
 
   async findOneById(id: number): Promise<IContact | null> {

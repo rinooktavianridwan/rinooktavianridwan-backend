@@ -23,7 +23,7 @@ import {
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(private readonly userRepository: UserRepository) { }
 
   async findAllPaginated(
     query: PaginationQuery,
@@ -94,6 +94,12 @@ export class UserService {
       profilePictureUrl: publicPath,
     } as unknown as UpdateUserRequest;
     await this.userRepository.update(user, updatePayload);
+  }
+
+  async findMainProfile(): Promise<IUser | null> {
+    // For now, return the first user. Can be enhanced with isMainProfile flag
+    const { data } = await this.userRepository.findAllPaginated(0, 1);
+    return data.length > 0 ? data[0] : null;
   }
 
   async remove(id: number): Promise<void> {

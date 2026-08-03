@@ -21,7 +21,7 @@ export class ProjectRepository {
     private readonly technologyRepository: Repository<ITechnology>,
     @InjectDataSource()
     private readonly dataSource: DataSource,
-  ) {}
+  ) { }
 
   async create(createProjectDto: CreateProjectRequest): Promise<IProject> {
     return await this.dataSource.transaction(async (manager) => {
@@ -83,6 +83,14 @@ export class ProjectRepository {
     });
 
     return { data, total };
+  }
+
+  async findAllVisible(): Promise<IProject[]> {
+    return await this.projectRepository.find({
+      where: { isVisible: true },
+      relations: ['user', 'images', 'technologies'],
+      order: { createdAt: 'DESC' },
+    });
   }
 
   async findOneById(id: number): Promise<IProject | null> {

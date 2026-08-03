@@ -12,6 +12,8 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import { IResponse } from 'src/common/interfaces/response.interface';
 import { UserService } from '../services/user.service';
@@ -24,13 +26,20 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as multer from 'multer';
 import { LocalMulterFile } from 'src/common/utils/upload.util';
+import { JwtAuthGuard } from '../guards/create-jwt';
+import { IUser } from '../../../infrastructures/database/interfaces/user-entity.interface';
+
+interface AuthenticatedRequest extends Request {
+  user: IUser;
+  url: string;
+}
 
 @Controller({
   path: 'users',
   version: '1',
 })
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Get()
   async findAll(
@@ -71,12 +80,19 @@ export class UserController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() request: UpdateUserRequest,
-    @Req() req: Request,
+    @Req() req: AuthenticatedRequest,
   ): Promise<IResponse<null>> {
     const version = req.url.split('/')[1].replace('v', '');
+
+    // User can only update their own profile
+    if (req.user.id !== id) {
+      throw new ForbiddenException('You can only update your own profile');
+    }
+
     await this.userService.update(id, request);
 
     return {
@@ -89,11 +105,18 @@ export class UserController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
   async remove(
     @Param('id', ParseIntPipe) id: number,
-    @Req() req: Request,
+    @Req() req: AuthenticatedRequest,
   ): Promise<IResponse<null>> {
     const version = req.url.split('/')[1].replace('v', '');
+
+    // User can only delete their own account
+    if (req.user.id !== id) {
+      throw new ForbiddenException('You can only delete your own account');
+    }
+
     await this.userService.remove(id);
 
     return {
@@ -105,6 +128,7 @@ export class UserController {
   }
 
   @Put(':id/profile-picture')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: multer.memoryStorage(),
@@ -114,7 +138,15 @@ export class UserController {
   async updateProfilePicture(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File, // multer memory file
+    @Req() req: AuthenticatedRequest,
   ): Promise<void> {
+    // User can only update their own profile picture
+    if (req.user.id !== id) {
+      throw new ForbiddenException(
+        'You can only update your own profile picture',
+      );
+    }
+
     const user = await this.userService.findOne(id);
     // cast Express.Multer.File ke LocalMulterFile sesuai utils (buffer & originalname)
     const localFile = {

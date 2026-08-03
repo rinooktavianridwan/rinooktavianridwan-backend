@@ -23,7 +23,7 @@ import {
 
 @Injectable()
 export class ProjectService {
-  constructor(private readonly projectRepository: ProjectRepository) {}
+  constructor(private readonly projectRepository: ProjectRepository) { }
 
   async create(
     createProjectDto: CreateProjectRequest,
@@ -166,6 +166,10 @@ export class ProjectService {
       }
       throw err;
     }
+  }
+
+  async findAllVisible(): Promise<IProject[]> {
+    return await this.projectRepository.findAllVisible();
   }
 
   async remove(id: number): Promise<void> {
