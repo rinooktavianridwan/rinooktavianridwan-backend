@@ -5,10 +5,7 @@ import {
 } from '@nestjs/common';
 import { IUser } from '../../../infrastructures/database/interfaces/user-entity.interface';
 import { UserRepository } from '../repositories/user.repository';
-import {
-  UpdateUserRequest,
-  UpdateUserDto,
-} from '../dtos/requests/update-user.dto';
+import { UpdateUserRequest } from '../dtos/requests/update-user.dto';
 import {
   PaginatedResponse,
   PaginationQuery,
@@ -23,7 +20,7 @@ import {
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) { }
+  constructor(private readonly userRepository: UserRepository) {}
 
   async findAllPaginated(
     query: PaginationQuery,
@@ -53,7 +50,7 @@ export class UserService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    const data = updateUserDto as unknown as UpdateUserDto;
+    const data = updateUserDto;
 
     if (data.username && data.username !== userToUpdate.username) {
       const existingUser = await this.userRepository.findOneByUsername(

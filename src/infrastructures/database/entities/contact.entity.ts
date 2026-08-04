@@ -5,20 +5,20 @@ import { Base } from './base.entity';
 @Entity('contacts')
 export class Contact extends Base implements IContact {
   @Column({ unique: true, length: 50 })
-  platformName: string;
+  platformName!: string;
 
   @Column({ length: 255 })
-  url: string;
+  url!: string;
 
   @Column({ length: 255 })
-  iconUrl: string;
+  iconUrl!: string;
 
   @Column({ nullable: true, length: 10 })
-  color: string;
+  color!: string;
 
   @Column({ type: 'int', default: 0 })
-  order: number;
+  order!: number;
 
   @Column({ default: true })
-  isVisible: boolean;
+  isVisible!: boolean;
 }

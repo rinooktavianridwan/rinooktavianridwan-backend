@@ -7,16 +7,16 @@ import { Base } from './base.entity';
 @Entity('project_images')
 export class ProjectImage extends Base implements IProjectImage {
   @Column({ length: 255 })
-  imageUrl: string;
+  imageUrl!: string;
 
   @Column({ type: 'int', default: 0 })
-  order: number;
+  order!: number;
 
   @ManyToOne(() => Project, (project) => project.images, {
     onDelete: 'CASCADE',
   })
-  project: IProject;
+  project!: IProject;
 
   @Column()
-  projectId: number;
+  projectId!: number;
 }

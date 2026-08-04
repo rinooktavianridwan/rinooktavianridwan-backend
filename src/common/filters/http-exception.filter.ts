@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import { MulterError } from 'multer';
 import { Request, Response } from 'express';
 
 @Catch()
@@ -13,6 +14,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+
+    if (exception instanceof MulterError) {
+      const status = HttpStatus.BAD_REQUEST;
+      response.status(status).json({
+        status_code: status,
+        message: exception.message,
+        data: null,
+        version: `${request.url.split('/')[1]?.replace('v', '') || '1'}.0.0`,
+        timestamp: new Date().toISOString(),
+        path: request.url,
+      });
+      return;
+    }
 
     const status =
       exception instanceof HttpException
@@ -27,7 +41,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const exceptionResponse =
       exception instanceof HttpException ? exception.getResponse() : null;
 
-    let validationErrors = null;
+    let validationErrors: unknown = null;
     if (
       exceptionResponse &&
       typeof exceptionResponse === 'object' &&

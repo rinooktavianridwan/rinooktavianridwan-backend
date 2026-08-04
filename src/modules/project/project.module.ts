@@ -13,4 +13,4 @@ import { ProjectRepository } from './repositories/project.repository';
   providers: [ProjectService, ProjectRepository],
   exports: [ProjectService],
 })
-export class ProjectModule { }
+export class ProjectModule {}

@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import type { JwtSignOptions } from '@nestjs/jwt';
 import { UserService } from './services/user.service';
 import { AuthService } from './services/auth.service';
 import { UserController } from './controllers/user.controller';
@@ -27,7 +28,7 @@ import { TechnologyModule } from '../technology/technology.module';
         secret: configService.get<string>('JWT_SECRET') || 'your-secret-key',
         signOptions: {
           expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '7d',
-        },
+        } as unknown as JwtSignOptions,
       }),
       inject: [ConfigService],
     }),
@@ -45,4 +46,4 @@ import { TechnologyModule } from '../technology/technology.module';
   ],
   exports: [UserService, AuthService],
 })
-export class UserModule { }
+export class UserModule {}

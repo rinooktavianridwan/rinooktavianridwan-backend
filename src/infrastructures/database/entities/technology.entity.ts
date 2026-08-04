@@ -5,7 +5,7 @@ import { ITechnology } from '../interfaces/technology-entity.interface';
 @Entity('technologies')
 export class Technology extends Base implements ITechnology {
   @Column({ length: 255, unique: true })
-  name: string;
+  name!: string;
 
   @Column({ type: 'text', nullable: true })
   description?: string;
@@ -17,5 +17,5 @@ export class Technology extends Base implements ITechnology {
   color?: string;
 
   @Column({ default: true })
-  isVisible: boolean;
+  isVisible!: boolean;
 }

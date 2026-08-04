@@ -5,14 +5,8 @@ import {
 } from '@nestjs/common';
 import { ITechnology } from '../../../infrastructures/database/interfaces/technology-entity.interface';
 import { TechnologyRepository } from '../repositories/technology.repository';
-import {
-  CreateTechnologyRequest,
-  CreateTechnologyDto,
-} from '../dtos/requests/create-technology.dto';
-import {
-  UpdateTechnologyRequest,
-  UpdateTechnologyDto,
-} from '../dtos/requests/update-technology.dto';
+import { CreateTechnologyRequest } from '../dtos/requests/create-technology.dto';
+import { UpdateTechnologyRequest } from '../dtos/requests/update-technology.dto';
 import {
   PaginatedResponse,
   PaginationQuery,
@@ -27,13 +21,13 @@ import {
 
 @Injectable()
 export class TechnologyService {
-  constructor(private readonly technologyRepository: TechnologyRepository) { }
+  constructor(private readonly technologyRepository: TechnologyRepository) {}
 
   async create(
     createTechnologyDto: CreateTechnologyRequest,
     file?: LocalMulterFile,
   ): Promise<void> {
-    const data = createTechnologyDto as unknown as CreateTechnologyDto;
+    const data = createTechnologyDto;
 
     const existingTechnology = await this.technologyRepository.findOneByName(
       data.name,
@@ -48,7 +42,7 @@ export class TechnologyService {
     try {
       if (file && isMulterFile(file)) {
         uploadedUrl = await saveUploadedFile('tech', file);
-        (createTechnologyDto as CreateTechnologyDto).iconUrl = uploadedUrl;
+        createTechnologyDto.iconUrl = uploadedUrl;
       }
 
       await this.technologyRepository.create(createTechnologyDto);
@@ -96,7 +90,7 @@ export class TechnologyService {
     let newIconUrl: string | undefined = undefined;
     if (file && isMulterFile(file)) {
       newIconUrl = await saveUploadedFile('tech', file);
-      (updateTechnologyDto as UpdateTechnologyDto).iconUrl = newIconUrl;
+      updateTechnologyDto.iconUrl = newIconUrl;
     }
 
     try {

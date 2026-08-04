@@ -7,11 +7,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { UserRepository } from '../repositories/user.repository';
 import { IUser } from '../../../infrastructures/database/interfaces/user-entity.interface';
-import { LoginRequest, LoginDto } from '../dtos/requests/login-auth.dto';
-import {
-  RegisterRequest,
-  RegisterDto,
-} from '../dtos/requests/register-auth.dto';
+import { LoginRequest } from '../dtos/requests/login-auth.dto';
+import { RegisterRequest } from '../dtos/requests/register-auth.dto';
 import { User } from '../../../infrastructures/database/entities/user.entity';
 
 @Injectable()
@@ -41,7 +38,7 @@ export class AuthService {
   async login(
     loginDto: LoginRequest,
   ): Promise<{ user: IUser; access_token: string }> {
-    const data = loginDto as unknown as LoginDto;
+    const data = loginDto;
     const user = await this.validateUser(data.username, data.password);
 
     if (!user) {
@@ -63,7 +60,7 @@ export class AuthService {
   async register(
     registerDto: RegisterRequest,
   ): Promise<{ user: IUser; access_token: string }> {
-    const data = registerDto as unknown as RegisterDto;
+    const data = registerDto;
 
     await this.userRepository.create(registerDto);
 

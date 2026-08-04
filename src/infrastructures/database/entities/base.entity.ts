@@ -8,14 +8,14 @@ import { IBase } from '../interfaces/base-entity.interface';
 
 export abstract class Base implements IBase {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @DeleteDateColumn({ nullable: true })
-  deletedAt: Date;
+  deletedAt!: Date;
 }

@@ -28,6 +28,14 @@ import { JwtAuthGuard } from '../../user/guards/create-jwt';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as multer from 'multer';
 import { LocalMulterFile } from 'src/common/utils/upload.util';
+import {
+  FileValidationPipe,
+  ALLOWED_IMAGE_MIME_TYPES,
+} from 'src/common/pipes/file-validation.pipe';
+
+const iconValidation = new FileValidationPipe({
+  allowedMimeTypes: ALLOWED_IMAGE_MIME_TYPES,
+});
 
 @Controller({
   path: 'technologies',
@@ -48,7 +56,8 @@ export class TechnologyController {
   async create(
     @Body() request: CreateTechnologyRequest,
     @Req() req: Request,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFile(iconValidation)
+    file?: Express.Multer.File,
   ): Promise<IResponse<null>> {
     const version = req.url.split('/')[1].replace('v', '');
     const localFile = file
@@ -120,7 +129,8 @@ export class TechnologyController {
     @Param('id', ParseIntPipe) id: number,
     @Body() request: UpdateTechnologyRequest,
     @Req() req: Request,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFile(iconValidation)
+    file?: Express.Multer.File,
   ): Promise<IResponse<null>> {
     const version = req.url.split('/')[1].replace('v', '');
     const localFile = file

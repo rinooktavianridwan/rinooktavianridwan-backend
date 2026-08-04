@@ -8,10 +8,10 @@ import { IProject } from '../interfaces/project-entity.interface';
 @Entity('users')
 export class User extends Base implements IUser {
   @Column({ unique: true, length: 50 })
-  username: string;
+  username!: string;
 
   @Column({ select: false })
-  password: string;
+  password!: string;
 
   @Column({ unique: true, nullable: true, length: 100 })
   email?: string;

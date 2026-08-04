@@ -5,7 +5,6 @@ import {
   ManyToOne,
   JoinTable,
   ManyToMany,
-  JoinColumn,
 } from 'typeorm';
 import { ProjectImage } from './project-image.entity';
 import { IProjectImage } from '../interfaces/project-image-entity.interface';
@@ -19,10 +18,10 @@ import { Base } from './base.entity';
 @Entity('projects')
 export class Project extends Base implements IProject {
   @Column({ length: 255 })
-  title: string;
+  title!: string;
 
   @Column({ type: 'text' })
-  description: string;
+  description!: string;
 
   @Column({ nullable: true, length: 255 })
   websiteUrl?: string;
@@ -34,13 +33,12 @@ export class Project extends Base implements IProject {
   documentationUrl?: string;
 
   @Column({ default: true })
-  isVisible: boolean;
+  isVisible!: boolean;
 
   @Column({ nullable: true })
   userId?: number;
 
   @ManyToOne(() => User, (user) => user.projects, { onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'userId' })
   user?: IUser;
 
   @OneToMany(() => ProjectImage, (projectImage) => projectImage.project, {
@@ -55,8 +53,8 @@ export class Project extends Base implements IProject {
   })
   @JoinTable({
     name: 'projects_technologies',
-    joinColumn: { name: 'projectId' },
-    inverseJoinColumn: { name: 'technologyId' },
+    joinColumn: { name: 'project_id' },
+    inverseJoinColumn: { name: 'technology_id' },
   })
   technologies?: ITechnology[];
 }

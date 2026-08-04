@@ -11,7 +11,7 @@ export class TechnologyRepository {
   constructor(
     @InjectRepository(Technology)
     private readonly technologyRepository: Repository<ITechnology>,
-  ) { }
+  ) {}
 
   async create(createTechnologyDto: CreateTechnologyRequest): Promise<void> {
     const newTechnology = this.technologyRepository.create(createTechnologyDto);
@@ -50,11 +50,8 @@ export class TechnologyRepository {
     technology: ITechnology,
     updateTechnologyDto: UpdateTechnologyRequest,
   ): Promise<void> {
-    this.technologyRepository.merge(
-      technology as Technology,
-      updateTechnologyDto,
-    );
-    await this.technologyRepository.save(technology as Technology);
+    this.technologyRepository.merge(technology, updateTechnologyDto);
+    await this.technologyRepository.save(technology);
   }
 
   async deleteById(id: number): Promise<boolean> {

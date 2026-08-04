@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SnakeNamingStrategy } from './infrastructures/database/naming-strategy';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './modules/user/user.module';
@@ -24,6 +25,7 @@ import { HealthController } from './common/controllers/health.controller';
         username: configService.get<string>('DATABASE_USERNAME'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
+        namingStrategy: new SnakeNamingStrategy(),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: false,
         logging: ['query', 'error'],
@@ -40,4 +42,4 @@ import { HealthController } from './common/controllers/health.controller';
   controllers: [AppController, HealthController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

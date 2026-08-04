@@ -11,7 +11,7 @@ export class ContactRepository {
   constructor(
     @InjectRepository(Contact)
     private readonly contactsRepository: Repository<IContact>,
-  ) { }
+  ) {}
 
   async create(createContactDto: CreateContactRequest): Promise<void> {
     const newContact = this.contactsRepository.create(createContactDto);
@@ -50,8 +50,8 @@ export class ContactRepository {
     contact: IContact,
     updateContactDto: UpdateContactRequest,
   ): Promise<void> {
-    this.contactsRepository.merge(contact as Contact, updateContactDto);
-    await this.contactsRepository.save(contact as Contact);
+    this.contactsRepository.merge(contact, updateContactDto);
+    await this.contactsRepository.save(contact);
   }
 
   async deleteById(id: number): Promise<boolean> {

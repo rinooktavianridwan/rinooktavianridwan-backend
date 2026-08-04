@@ -21,7 +21,7 @@ export class ProjectRepository {
     private readonly technologyRepository: Repository<ITechnology>,
     @InjectDataSource()
     private readonly dataSource: DataSource,
-  ) { }
+  ) {}
 
   async create(createProjectDto: CreateProjectRequest): Promise<IProject> {
     return await this.dataSource.transaction(async (manager) => {
@@ -121,10 +121,8 @@ export class ProjectRepository {
         project.documentationUrl = updateProjectDto.documentationUrl;
       if (updateProjectDto.isVisible !== undefined)
         project.isVisible = updateProjectDto.isVisible;
-      if (updateProjectDto.userId !== undefined)
-        project.userId = updateProjectDto.userId;
 
-      const updatedProject = await projectRepo.save(project as Project);
+      const updatedProject = await projectRepo.save(project);
 
       // Handle technologies update
       if (updateProjectDto.technologyIds !== undefined) {

@@ -17,7 +17,6 @@ export const UpdateProjectSchema = z.object({
     .url('Invalid documentation URL format')
     .optional(),
   isVisible: z.boolean().optional(),
-  userId: z.number().int().positive().optional(),
   technologyIds: z.array(z.number().int().positive()).optional(),
   images: z.array(UpdateProjectImageSchema).optional(),
   deleteImageIds: z.array(z.number().int().positive()).optional().default([]),

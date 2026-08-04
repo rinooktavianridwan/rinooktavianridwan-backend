@@ -1,6 +1,7 @@
 // ormconfig.ts
 import * as dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
+import { SnakeNamingStrategy } from './naming-strategy';
 
 dotenv.config();
 
@@ -11,6 +12,7 @@ const AppDataSource = new DataSource({
   username: process.env.DATABASE_USERNAME,
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
+  namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,
   logging: ['query', 'error'],
   entities: [__dirname + '/entities/*{.ts,.js}'],

@@ -64,9 +64,9 @@ export class UserRepository {
       await (user as User).hashPassword(updateUserDto.password);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...updateData } = updateUserDto;
-      this.userRepository.merge(user as User, updateData);
+      this.userRepository.merge(user, updateData);
     } else {
-      this.userRepository.merge(user as User, updateUserDto);
+      this.userRepository.merge(user, updateUserDto);
     }
 
     await this.userRepository.save(user as User);

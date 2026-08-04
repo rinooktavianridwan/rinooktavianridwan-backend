@@ -23,7 +23,7 @@ import {
 
 @Injectable()
 export class ProjectService {
-  constructor(private readonly projectRepository: ProjectRepository) { }
+  constructor(private readonly projectRepository: ProjectRepository) {}
 
   async create(
     createProjectDto: CreateProjectRequest,
@@ -40,13 +40,13 @@ export class ProjectService {
         uploadedImages.push({
           imageUrl: url,
           order: i,
-        } as CreateProjectImageDto);
+        });
       }
       // merge with any client-sent images (imageUrl entries)
       createProjectDto.images = [
         ...(createProjectDto.images || []),
         ...uploadedImages,
-      ] as unknown as CreateProjectRequest['images'];
+      ];
     }
 
     // Validate technology IDs exist would be done in repository
@@ -116,7 +116,7 @@ export class ProjectService {
         const f = files[i];
         if (!isMulterFile(f)) continue;
         const url = await saveUploadedFile('project', f);
-        tmp.push({ imageUrl: url } as UpdateProjectImageDto);
+        tmp.push({ imageUrl: url });
       }
       uploadedImages = tmp;
     }
@@ -140,10 +140,7 @@ export class ProjectService {
 
     // Merge provided images and uploaded images into DTO
     const existingUpdateImages = Array.isArray(data.images) ? data.images : [];
-    updateProjectDto.images = [
-      ...existingUpdateImages,
-      ...uploadedImages,
-    ] as unknown as UpdateProjectRequest['images'];
+    updateProjectDto.images = [...existingUpdateImages, ...uploadedImages];
 
     try {
       const updatedProject = await this.projectRepository.update(

@@ -5,14 +5,8 @@ import {
 } from '@nestjs/common';
 import { IContact } from '../../../infrastructures/database/interfaces/contact-entity.interface';
 import { ContactRepository } from '../repositories/contact.repository';
-import {
-  CreateContactRequest,
-  CreateContactDto,
-} from '../dtos/requests/create-contact.dto';
-import {
-  UpdateContactRequest,
-  UpdateContactDto,
-} from '../dtos/requests/update-contact.dto';
+import { CreateContactRequest } from '../dtos/requests/create-contact.dto';
+import { UpdateContactRequest } from '../dtos/requests/update-contact.dto';
 import {
   PaginatedResponse,
   PaginationQuery,
@@ -21,10 +15,10 @@ import {
 
 @Injectable()
 export class ContactService {
-  constructor(private readonly contactRepository: ContactRepository) { }
+  constructor(private readonly contactRepository: ContactRepository) {}
 
   async create(createContactDto: CreateContactRequest): Promise<void> {
-    const data = createContactDto as unknown as CreateContactDto;
+    const data = createContactDto;
 
     const existingContact = await this.contactRepository.findOneByPlatformName(
       data.platformName,
@@ -69,7 +63,7 @@ export class ContactService {
       throw new NotFoundException(`Contact with ID ${id} not found.`);
     }
 
-    const data = updateContactDto as unknown as UpdateContactDto;
+    const data = updateContactDto;
 
     if (
       data.platformName &&

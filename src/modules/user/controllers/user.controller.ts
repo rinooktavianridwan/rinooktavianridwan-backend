@@ -28,6 +28,14 @@ import * as multer from 'multer';
 import { LocalMulterFile } from 'src/common/utils/upload.util';
 import { JwtAuthGuard } from '../guards/create-jwt';
 import { IUser } from '../../../infrastructures/database/interfaces/user-entity.interface';
+import {
+  FileValidationPipe,
+  ALLOWED_IMAGE_MIME_TYPES,
+} from '../../../common/pipes/file-validation.pipe';
+
+const profilePictureValidation = new FileValidationPipe({
+  allowedMimeTypes: ALLOWED_IMAGE_MIME_TYPES,
+});
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -39,9 +47,10 @@ interface AuthenticatedRequest extends Request {
   version: '1',
 })
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   async findAll(
     @Query() query: PaginationQuery,
     @Req() req: Request,
@@ -64,6 +73,7 @@ export class UserController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   async findOne(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
@@ -137,7 +147,8 @@ export class UserController {
   )
   async updateProfilePicture(
     @Param('id', ParseIntPipe) id: number,
-    @UploadedFile() file: Express.Multer.File, // multer memory file
+    @UploadedFile(profilePictureValidation)
+    file: Express.Multer.File, // multer memory file
     @Req() req: AuthenticatedRequest,
   ): Promise<void> {
     // User can only update their own profile picture

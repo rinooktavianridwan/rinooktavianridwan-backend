@@ -28,6 +28,14 @@ import { JwtAuthGuard } from '../../user/guards/create-jwt';
 import { IUser } from '../../../infrastructures/database/interfaces/user-entity.interface';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import * as multer from 'multer';
+import {
+  FilesValidationPipe,
+  ALLOWED_IMAGE_MIME_TYPES,
+} from '../../../common/pipes/file-validation.pipe';
+
+const imagesValidation = new FilesValidationPipe({
+  allowedMimeTypes: ALLOWED_IMAGE_MIME_TYPES,
+});
 
 interface AuthenticatedRequest extends Request {
   user: IUser;
@@ -45,11 +53,14 @@ export class ProjectController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
-    FilesInterceptor('images', 5, { storage: multer.memoryStorage() }),
+    FilesInterceptor('images', 5, {
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
   )
   async create(
     @Body() request: CreateProjectRequest,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles(imagesValidation) files: Express.Multer.File[],
     @Req() req: AuthenticatedRequest,
   ): Promise<IResponse<ProjectResponseDto>> {
     const version = req.url.split('/')[1].replace('v', '');
@@ -114,13 +125,16 @@ export class ProjectController {
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
-    FilesInterceptor('images', 5, { storage: multer.memoryStorage() }),
+    FilesInterceptor('images', 5, {
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
   )
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() request: UpdateProjectRequest,
     @Req() req: AuthenticatedRequest,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles(imagesValidation) files: Express.Multer.File[],
   ): Promise<IResponse<ProjectResponseDto>> {
     const version = req.url.split('/')[1].replace('v', '');
 
