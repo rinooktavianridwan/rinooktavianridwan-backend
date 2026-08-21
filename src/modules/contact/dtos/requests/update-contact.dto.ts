@@ -1,13 +1,13 @@
-import { ZodUtils } from 'src/common/utils/zod.util';
+import { ZodUtils, ZodCoerce, ZodSchemas } from 'src/common/utils/zod.util';
 import { z } from 'zod';
 
 export const UpdateContactSchema = z.object({
   platformName: z.string().min(1, 'Platform name is required').optional(),
   url: z.string().url('Invalid URL format').optional(),
-  iconUrl: z.string().url('Invalid icon URL format').optional(),
+  iconUrl: ZodSchemas.iconUrl.optional(),
   color: z.string().optional(),
-  order: z.number().int().min(0).optional(),
-  isVisible: z.boolean().optional(),
+  order: z.preprocess(ZodCoerce.number, z.number().int().min(0)).optional(),
+  isVisible: z.preprocess(ZodCoerce.boolean, z.boolean()).optional(),
 });
 
 export type UpdateContactDto = z.infer<typeof UpdateContactSchema>;

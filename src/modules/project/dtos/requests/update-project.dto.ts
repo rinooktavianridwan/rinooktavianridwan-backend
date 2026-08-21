@@ -1,10 +1,10 @@
-import { ZodUtils } from 'src/common/utils/zod.util';
+import { ZodUtils, ZodCoerce } from 'src/common/utils/zod.util';
 import { z } from 'zod';
 
 export const UpdateProjectImageSchema = z.object({
-  id: z.number().int().positive().optional(),
+  id: z.preprocess(ZodCoerce.number, z.number().int().positive()).optional(),
   imageUrl: z.string().url('Invalid image URL format').optional(),
-  order: z.number().int().min(0).optional(),
+  order: z.preprocess(ZodCoerce.number, z.number().int().min(0)).optional(),
 });
 
 export const UpdateProjectSchema = z.object({
@@ -16,10 +16,17 @@ export const UpdateProjectSchema = z.object({
     .string()
     .url('Invalid documentation URL format')
     .optional(),
-  isVisible: z.boolean().optional(),
-  technologyIds: z.array(z.number().int().positive()).optional(),
-  images: z.array(UpdateProjectImageSchema).optional(),
-  deleteImageIds: z.array(z.number().int().positive()).optional().default([]),
+  isVisible: z.preprocess(ZodCoerce.boolean, z.boolean()).optional(),
+  technologyIds: z
+    .preprocess(ZodCoerce.numberArray, z.array(z.number().int().positive()))
+    .optional(),
+  images: z
+    .preprocess(ZodCoerce.json, z.array(UpdateProjectImageSchema))
+    .optional(),
+  deleteImageIds: z
+    .preprocess(ZodCoerce.numberArray, z.array(z.number().int().positive()))
+    .optional()
+    .default([]),
 });
 
 export type UpdateProjectDto = z.infer<typeof UpdateProjectSchema>;

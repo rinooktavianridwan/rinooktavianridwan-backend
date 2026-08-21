@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.env
+.env.*
+.git
+.gitignore
+.gitattributes
+.editorconfig
+*.log
+.vscode
+.temp
+.tmp
+storages
