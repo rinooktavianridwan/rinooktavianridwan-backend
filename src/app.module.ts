@@ -9,6 +9,7 @@ import { ContactModule } from './modules/contact/contact.module';
 import { ProjectModule } from './modules/project/project.module';
 import { TechnologyModule } from './modules/technology/technology.module';
 import { HealthController } from './common/controllers/health.controller';
+import { RootController } from './common/controllers/root.controller';
 
 @Module({
   imports: [
@@ -39,7 +40,7 @@ import { HealthController } from './common/controllers/health.controller';
     TechnologyModule,
     ProjectModule,
   ],
-  controllers: [AppController, HealthController],
+  controllers: [AppController, HealthController, RootController],
   providers: [AppService],
 })
 export class AppModule {}
