@@ -11,6 +11,8 @@ import {
   Req,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { IResponse } from 'src/common/interfaces/response.interface';
 import { ContactService } from '../services/contact.service';
@@ -22,6 +24,17 @@ import {
   PaginatedResponse,
 } from '../../../common/utils/pagination.util';
 import { JwtAuthGuard } from '../../user/guards/create-jwt';
+import { FileInterceptor } from '@nestjs/platform-express';
+import * as multer from 'multer';
+import { LocalMulterFile } from 'src/common/utils/upload.util';
+import {
+  FileValidationPipe,
+  ALLOWED_IMAGE_MIME_TYPES,
+} from 'src/common/pipes/file-validation.pipe';
+
+const iconValidation = new FileValidationPipe({
+  allowedMimeTypes: ALLOWED_IMAGE_MIME_TYPES,
+});
 
 @Controller({
   path: 'contacts',
@@ -32,12 +45,27 @@ export class ContactController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('icon', {
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 2 * 1024 * 1024 },
+    }),
+  )
   async create(
     @Body() request: CreateContactRequest,
     @Req() req: Request,
+    @UploadedFile(iconValidation) file?: Express.Multer.File,
   ): Promise<IResponse<null>> {
     const version = req.url.split('/')[1].replace('v', '');
-    await this.contactService.create(request);
+    const localFile = file
+      ? ({
+          originalname: file.originalname,
+          buffer: file.buffer,
+          mimetype: file.mimetype,
+          size: file.size,
+        } as LocalMulterFile)
+      : undefined;
+    await this.contactService.create(request, localFile);
 
     return {
       status_code: HttpStatus.CREATED,
@@ -87,13 +115,28 @@ export class ContactController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('icon', {
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 2 * 1024 * 1024 },
+    }),
+  )
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() request: UpdateContactRequest,
     @Req() req: Request,
+    @UploadedFile(iconValidation) file?: Express.Multer.File,
   ): Promise<IResponse<null>> {
     const version = req.url.split('/')[1].replace('v', '');
-    await this.contactService.update(id, request);
+    const localFile = file
+      ? ({
+          originalname: file.originalname,
+          buffer: file.buffer,
+          mimetype: file.mimetype,
+          size: file.size,
+        } as LocalMulterFile)
+      : undefined;
+    await this.contactService.update(id, request, localFile);
 
     return {
       status_code: HttpStatus.OK,

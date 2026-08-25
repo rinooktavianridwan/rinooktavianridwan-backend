@@ -13,6 +13,7 @@ const FOLDERS = {
   profile: 'profile',
   project: 'project',
   tech: 'tech',
+  contact: 'contact',
 } as const;
 
 async function ensureDir(dir: string) {

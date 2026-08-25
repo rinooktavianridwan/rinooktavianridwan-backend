@@ -8,6 +8,12 @@ import { ContactRepository } from '../repositories/contact.repository';
 import { CreateContactRequest } from '../dtos/requests/create-contact.dto';
 import { UpdateContactRequest } from '../dtos/requests/update-contact.dto';
 import {
+  LocalMulterFile,
+  isMulterFile,
+  saveUploadedFile,
+  deleteUploadedFile,
+} from 'src/common/utils/upload.util';
+import {
   PaginatedResponse,
   PaginationQuery,
   PaginationUtil,
@@ -17,7 +23,10 @@ import {
 export class ContactService {
   constructor(private readonly contactRepository: ContactRepository) {}
 
-  async create(createContactDto: CreateContactRequest): Promise<void> {
+  async create(
+    createContactDto: CreateContactRequest,
+    file?: LocalMulterFile,
+  ): Promise<void> {
     const data = createContactDto;
 
     const existingContact = await this.contactRepository.findOneByPlatformName(
@@ -29,7 +38,17 @@ export class ContactService {
       );
     }
 
-    await this.contactRepository.create(createContactDto);
+    let uploadedUrl: string | undefined;
+    try {
+      if (file && isMulterFile(file)) {
+        uploadedUrl = await saveUploadedFile('contact', file);
+        createContactDto.iconUrl = uploadedUrl;
+      }
+      await this.contactRepository.create(createContactDto);
+    } catch (err) {
+      if (uploadedUrl) await deleteUploadedFile(uploadedUrl);
+      throw err;
+    }
   }
 
   async findAllPaginated(
@@ -57,6 +76,7 @@ export class ContactService {
   async update(
     id: number,
     updateContactDto: UpdateContactRequest,
+    file?: LocalMulterFile,
   ): Promise<void> {
     const contactToUpdate = await this.contactRepository.findOneById(id);
     if (!contactToUpdate) {
@@ -78,7 +98,20 @@ export class ContactService {
       }
     }
 
-    await this.contactRepository.update(contactToUpdate, updateContactDto);
+    let newIconUrl: string | undefined;
+    const oldIconUrl = contactToUpdate.iconUrl;
+    if (file && isMulterFile(file)) {
+      newIconUrl = await saveUploadedFile('contact', file);
+      updateContactDto.iconUrl = newIconUrl;
+    }
+
+    try {
+      await this.contactRepository.update(contactToUpdate, updateContactDto);
+      if (newIconUrl && oldIconUrl) await deleteUploadedFile(oldIconUrl);
+    } catch (err) {
+      if (newIconUrl) await deleteUploadedFile(newIconUrl);
+      throw err;
+    }
   }
 
   async findAllVisible(): Promise<IContact[]> {

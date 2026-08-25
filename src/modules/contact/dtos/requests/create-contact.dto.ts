@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const CreateContactSchema = z.object({
   platformName: z.string().min(1, 'Platform name is required'),
   url: z.string().url('Invalid URL format'),
-  iconUrl: ZodSchemas.iconUrl,
+  iconUrl: ZodSchemas.iconUrl.optional(),
   color: z.string().optional(),
   order: z.preprocess(ZodCoerce.number, z.number().int().min(0)).optional(),
   isVisible: z.preprocess(ZodCoerce.boolean, z.boolean()).optional(),

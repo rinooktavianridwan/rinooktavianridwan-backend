@@ -5,6 +5,7 @@ import { ZodValidationPipe } from './common/pipes/zod-validation.pipe';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { seedAdmin } from './infrastructures/database/seeders/admin.seeder';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -33,6 +34,9 @@ async function bootstrap() {
   app.useStaticAssets(join(process.cwd(), 'storages'), {
     prefix: '/storages/',
   });
+
+  // Seed admin user from .env
+  await seedAdmin(app);
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
