@@ -9,11 +9,13 @@ pipeline {
         // Tahap CI: Selalu berjalan di semua branch dan PR
         stage('Test & Lint (CI)') {
             steps {
-                sh '''
-                npm install
-                npm run lint
-                npm run test
-                '''
+                nodejs(nodeJSInstallationName: 'NodeJS26') {
+                    sh '''
+                    npm install
+                    npm run lint
+                    npm run test
+                    '''
+                }
             }
         }
 
