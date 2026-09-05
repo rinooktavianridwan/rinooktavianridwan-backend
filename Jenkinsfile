@@ -3,17 +3,28 @@ pipeline {
 
     stages {
         stage('Checkout Code') {
+            steps { checkout scm }
+        }
+
+        // Tahap CI: Selalu berjalan di semua branch dan PR
+        stage('Test & Lint (CI)') {
             steps {
-                // Jenkins otomatis mengambil kode dari branch main sesuai konfigurasi tadi
-                checkout scm
+                sh '''
+                npm install
+                npm run lint
+                npm run test
+                '''
             }
         }
 
-        stage('Deploy (Docker Compose)') {
+        // Tahap CD: HANYA berjalan jika kode berhasil di-merge ke branch master
+        stage('Deploy Production (CD)') {
+            when {
+                branch 'master' // Ganti 'main' jika branch utama Anda bernama main
+            }
             steps {
-                // Mengeksekusi perintah build dan up menggunakan docker compose production Anda
                 sh '''
-                echo "Memulai proses build dan deployment..."
+                echo "Memulai deployment ke VPS..."
                 docker compose -f docker-compose.prod.yml build
                 docker compose -f docker-compose.prod.yml up -d
                 '''
@@ -21,8 +32,10 @@ pipeline {
         }
         
         stage('Clean Up') {
+            when {
+                branch 'master'
+            }
             steps {
-                // Membersihkan image docker lama yang menumpuk agar VPS tidak penuh
                 sh 'docker image prune -f'
             }
         }
