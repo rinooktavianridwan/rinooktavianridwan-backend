@@ -25,7 +25,7 @@ pipeline {
                 branch 'master'
             }
             steps {
-                withCredentials([file(credentialsId: 'prod-portofolio-env', variable: 'ENV_FILE')]) {
+                withCredentials([file(credentialsId: 'prod-portfolio-env', variable: 'ENV_FILE')]) {
                     sh '''
                     echo "Menyiapkan file .env dari Jenkins Credentials..."
                     cp "$ENV_FILE" .env
