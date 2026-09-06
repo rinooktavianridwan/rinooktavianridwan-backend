@@ -22,14 +22,19 @@ pipeline {
         // Tahap CD: HANYA berjalan jika kode berhasil di-merge ke branch master
         stage('Deploy Production (CD)') {
             when {
-                branch 'master' // Ganti 'main' jika branch utama Anda bernama main
+                branch 'master'
             }
             steps {
-                sh '''
-                echo "Memulai deployment ke VPS..."
-                docker compose -f docker-compose.prod.yml build
-                docker compose -f docker-compose.prod.yml up -d
-                '''
+                withCredentials([string(credentialsId: 'prod-portofolio-env', variable: 'ENV_CONTENT')]) {
+                    sh '''
+                    echo "Menyiapkan file .env dari Jenkins Credentials..."
+                    printenv ENV_CONTENT > .env
+                    
+                    echo "Memulai deployment ke VPS..."
+                    docker compose -f docker-compose.prod.yml build
+                    docker compose -f docker-compose.prod.yml up -d
+                    '''
+                }
             }
         }
         
@@ -38,7 +43,10 @@ pipeline {
                 branch 'master'
             }
             steps {
-                sh 'docker image prune -f'
+                sh '''
+                docker image prune -f
+                rm -f .env
+                '''
             }
         }
     }
