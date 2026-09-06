@@ -25,11 +25,11 @@ pipeline {
                 branch 'master'
             }
             steps {
-                withCredentials([string(credentialsId: 'prod-portofolio-env', variable: 'ENV_CONTENT')]) {
+                withCredentials([file(credentialsId: 'prod-portofolio-env', variable: 'ENV_FILE')]) {
                     sh '''
                     echo "Menyiapkan file .env dari Jenkins Credentials..."
-                    printenv ENV_CONTENT > .env
-                    
+                    cp "$ENV_FILE" .env
+
                     echo "Memulai deployment ke VPS..."
                     docker compose -f docker-compose.prod.yml build
                     docker compose -f docker-compose.prod.yml up -d
