@@ -11,6 +11,7 @@ export class ProjectResponseDto {
   githubUrl?: string;
   documentationUrl?: string;
   isVisible: boolean;
+  order: number;
   userId?: number;
   createdAt: Date;
   updatedAt: Date;
@@ -27,6 +28,7 @@ export class ProjectResponseDto {
     dto.githubUrl = project.githubUrl;
     dto.documentationUrl = project.documentationUrl;
     dto.isVisible = project.isVisible;
+    dto.order = project.order;
     dto.userId = project.userId;
     dto.createdAt = project.createdAt;
     dto.updatedAt = project.updatedAt;

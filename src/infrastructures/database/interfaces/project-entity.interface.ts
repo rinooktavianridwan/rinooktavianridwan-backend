@@ -10,6 +10,7 @@ export interface IProject extends IBase {
   githubUrl?: string;
   documentationUrl?: string;
   isVisible: boolean;
+  order: number;
   userId?: number;
   user?: IUser;
   images?: IProjectImage[];
