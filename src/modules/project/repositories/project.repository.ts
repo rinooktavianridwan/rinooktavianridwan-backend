@@ -37,6 +37,7 @@ export class ProjectRepository {
         githubUrl: createProjectDto.githubUrl,
         documentationUrl: createProjectDto.documentationUrl,
         isVisible: createProjectDto.isVisible,
+        order: createProjectDto.order,
         userId: createProjectDto.userId,
       });
 
@@ -77,7 +78,7 @@ export class ProjectRepository {
   ): Promise<{ data: IProject[]; total: number }> {
     const [data, total] = await this.projectRepository.findAndCount({
       relations: ['user', 'images', 'technologies'],
-      order: { createdAt: 'DESC' },
+      order: { order: 'ASC', createdAt: 'DESC' },
       skip,
       take,
     });
@@ -89,7 +90,7 @@ export class ProjectRepository {
     return await this.projectRepository.find({
       where: { isVisible: true },
       relations: ['user', 'images', 'technologies'],
-      order: { createdAt: 'DESC' },
+      order: { order: 'ASC', createdAt: 'DESC' },
     });
   }
 
@@ -121,6 +122,8 @@ export class ProjectRepository {
         project.documentationUrl = updateProjectDto.documentationUrl;
       if (updateProjectDto.isVisible !== undefined)
         project.isVisible = updateProjectDto.isVisible;
+      if (updateProjectDto.order !== undefined)
+        project.order = updateProjectDto.order;
 
       const updatedProject = await projectRepo.save(project);
 

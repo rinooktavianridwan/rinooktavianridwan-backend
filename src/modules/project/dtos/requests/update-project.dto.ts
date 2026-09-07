@@ -17,6 +17,7 @@ export const UpdateProjectSchema = z.object({
     .url('Invalid documentation URL format')
     .optional(),
   isVisible: z.preprocess(ZodCoerce.boolean, z.boolean()).optional(),
+  order: z.preprocess(ZodCoerce.number, z.number().int().min(0)).optional(),
   technologyIds: z
     .preprocess(ZodCoerce.numberArray, z.array(z.number().int().positive()))
     .optional(),

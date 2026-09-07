@@ -35,6 +35,9 @@ export class Project extends Base implements IProject {
   @Column({ default: true })
   isVisible!: boolean;
 
+  @Column({ type: 'int', default: 0 })
+  order!: number;
+
   @Column({ nullable: true })
   userId?: number;
 

@@ -22,6 +22,7 @@ export const CreateProjectSchema = z.object({
     .preprocess(ZodCoerce.boolean, z.boolean())
     .optional()
     .default(true),
+  order: z.preprocess(ZodCoerce.number, z.number().int().min(0)).optional(),
   userId: z
     .preprocess(ZodCoerce.number, z.number().int().positive())
     .optional(),
