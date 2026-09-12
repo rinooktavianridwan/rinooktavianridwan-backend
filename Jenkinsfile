@@ -11,7 +11,19 @@ pipeline {
             steps {
                 nodejs(nodeJSInstallationName: 'NodeJS26') {
                     sh '''
-                    corepack enable && corepack prepare pnpm@10.29.3 --activate
+                    # Install pnpm (corepack if available, else npm)
+                    if command -v corepack >/dev/null 2>&1; then
+                      corepack enable && corepack prepare pnpm@10.29.3 --activate
+                    else
+                      npm install -g pnpm@10.29.3
+                    fi
+
+                    # Verify lockfile exists
+                    if [ ! -f pnpm-lock.yaml ]; then
+                      echo "ERROR: pnpm-lock.yaml not found in workspace"
+                      exit 1
+                    fi
+
                     pnpm install --frozen-lockfile
                     pnpm run lint
                     pnpm run test
