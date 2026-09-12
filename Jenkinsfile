@@ -11,9 +11,22 @@ pipeline {
             steps {
                 nodejs(nodeJSInstallationName: 'NodeJS26') {
                     sh '''
-                    npm install
-                    npm run lint
-                    npm run test
+                    # Install pnpm (corepack if available, else npm)
+                    if command -v corepack >/dev/null 2>&1; then
+                      corepack enable && corepack prepare pnpm@10.29.3 --activate
+                    else
+                      npm install -g pnpm@10.29.3
+                    fi
+
+                    # Debug: show workspace and lockfile
+                    pwd
+                    ls -la pnpm-lock.yaml
+                    head -5 pnpm-lock.yaml
+
+                    # Install without frozen-lockfile first (handles version mismatches)
+                    pnpm install
+                    pnpm run lint
+                    pnpm run test
                     '''
                 }
             }
