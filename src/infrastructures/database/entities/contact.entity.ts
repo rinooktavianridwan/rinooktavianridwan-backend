@@ -1,6 +1,7 @@
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { IContact } from '../interfaces/contact-entity.interface';
 import { Base } from './base.entity';
+import { User } from './user.entity';
 
 @Entity('contacts')
 export class Contact extends Base implements IContact {
@@ -21,4 +22,11 @@ export class Contact extends Base implements IContact {
 
   @Column({ default: true })
   isVisible!: boolean;
+
+  @Column({ name: 'user_id' })
+  userId!: number;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user!: User;
 }
